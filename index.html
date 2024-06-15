@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grayscale Image Transformation v3</title>
+    <title>Grayscale Image Transformation</title>
 </head>
 <body>
     <h1>Grayscale Image Transformation</h1>
-    <input type="file" id="upload" accept="image/*">
+    <input type="file" id="upload" accept="image/*"><br>
+    <input type="checkbox" id="blendEdges"> Blend Edges<br>
     <canvas id="canvas"></canvas>
     <script>
         document.getElementById('upload').addEventListener('change', function(event) {
@@ -45,9 +46,42 @@
                     data[i] = data[i + 1] = data[i + 2] = normalizedValue;
                 }
 
+                // Check if blend edges is selected
+                if (document.getElementById('blendEdges').checked) {
+                    blendEdges(data, canvas.width, canvas.height);
+                }
+
                 ctx.putImageData(imageData, 0, 0);
             };
         });
+
+        function blendEdges(data, width, height) {
+            const blendRadius = 5; // Adjust the radius as needed
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = (y * width + x) * 4;
+                    if (x < blendRadius || y < blendRadius || x >= width - blendRadius || y >= height - blendRadius) {
+                        let blendedValue = data[index];
+                        let count = 1;
+
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                    const neighborIndex = (ny * width + nx) * 4;
+                                    blendedValue += data[neighborIndex];
+                                    count++;
+                                }
+                            }
+                        }
+
+                        blendedValue = blendedValue / count;
+                        data[index] = data[index + 1] = data[index + 2] = blendedValue;
+                    }
+                }
+            }
+        }
     </script>
 </body>
 </html>
